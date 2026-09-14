@@ -4,6 +4,12 @@ export type Task = {
   characterId: string
 }
 
+export type Character = {
+  id: string
+  name: string
+  image: string
+}
+
 export type ColumnId = 'todo' | 'doing' | 'done'
 
 export type BoardState = {

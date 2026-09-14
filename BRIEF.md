@@ -210,8 +210,8 @@ a live pairing interview.
 ## Feature Implementation Order
 
 1. Define the board/task data model and render the three-column board.
-2. Fetch and display Rick and Morty character data with loading, error,
-   and retry states.
+2. Fetch Rick and Morty character data for later task assignment, with loading,
+   error, and retry states. Do not render a character list.
 3. Add task creation through the Add Task dialog. Display each created task as a card in To Do with its title and the assigned character's name and small round avatar.
 4. Add drag-and-drop reordering within columns.
 5. Add drag-and-drop movement between columns, including empty columns.

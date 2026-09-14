@@ -66,6 +66,38 @@ h1 {
   color: #65717f;
 }
 
+.status-message {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.status-message-error {
+  border-color: #f0b8b8;
+  color: #8a1f1f;
+}
+
+.status-message-error p {
+  margin: 0 0 0.75rem;
+}
+
+.status-message-error button {
+  min-height: 2.5rem;
+  padding: 0 0.875rem;
+  border: 1px solid #8a1f1f;
+  border-radius: 6px;
+  color: #8a1f1f;
+  background: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.status-message-error button:hover {
+  background: #fff3f3;
+}
+
 :focus-visible {
   outline: 3px solid #2563eb;
   outline-offset: 2px;
