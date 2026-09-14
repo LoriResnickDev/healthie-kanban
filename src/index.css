@@ -94,6 +94,13 @@ h1 {
   border: 1px solid #d8dee4;
   border-radius: 8px;
   background: #f6f8fa;
+  cursor: grab;
+  touch-action: none;
+}
+
+.task-card-dragging {
+  opacity: 0.65;
+  cursor: grabbing;
 }
 
 .task-card h3 {

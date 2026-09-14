@@ -1,5 +1,15 @@
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCharacters } from './api/characters'
+import { reorderTaskWithinColumn } from './board'
 import AddTaskDialog from './components/AddTaskDialog'
 import BoardColumn from './components/BoardColumn'
 import type { BoardState, Character, ColumnId, Task } from './types'
@@ -27,6 +37,12 @@ function App() {
     useState<CharacterLoadState>({ status: 'loading' })
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
   const addTaskButtonRef = useRef<HTMLButtonElement>(null)
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
 
   const loadCharacters = useCallback(() => {
     setCharacterLoadState({ status: 'loading' })
@@ -87,6 +103,16 @@ function App() {
     addTaskButtonRef.current?.focus()
   }, [])
 
+  const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) {
+      return
+    }
+
+    setBoard((currentBoard) =>
+      reorderTaskWithinColumn(currentBoard, String(active.id), String(over.id)),
+    )
+  }, [])
+
   const characters =
     characterLoadState.status === 'success' ? characterLoadState.characters : []
   const charactersById = new Map(
@@ -121,17 +147,19 @@ function App() {
         </div>
       ) : null}
       {characterLoadState.status === 'success' ? (
-        <section className="board" aria-label="Kanban board">
-          {columns.map((column) => (
-            <BoardColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              tasks={board[column.id]}
-              charactersById={charactersById}
-            />
-          ))}
-        </section>
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <section className="board" aria-label="Kanban board">
+            {columns.map((column) => (
+              <BoardColumn
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                tasks={board[column.id]}
+                charactersById={charactersById}
+              />
+            ))}
+          </section>
+        </DndContext>
       ) : null}
       {isAddTaskDialogOpen ? (
         <AddTaskDialog

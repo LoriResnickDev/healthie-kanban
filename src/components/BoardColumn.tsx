@@ -1,3 +1,4 @@
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import TaskCard from './TaskCard'
 import type { Character, ColumnId, Task } from '../types'
 
@@ -18,13 +19,18 @@ function BoardColumn({ id, title, tasks, charactersById }: BoardColumnProps) {
         {tasks.length === 0 ? (
           <p className="empty-column">No tasks yet.</p>
         ) : (
-          tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              character={charactersById.get(task.characterId)}
-            />
-          ))
+          <SortableContext
+            items={tasks.map((task) => task.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                character={charactersById.get(task.characterId)}
+              />
+            ))}
+          </SortableContext>
         )}
       </div>
     </section>
