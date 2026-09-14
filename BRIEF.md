@@ -53,7 +53,7 @@ The main view displays:
 Each task card displays:
 
 - the task title
-- the assigned character's inage as a small round avatar
+- the assigned character's image as a small round avatar
 - the assigned character's name
 
 ### Add Task Dialog
