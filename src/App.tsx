@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCharacters } from './api/characters'
+import AddTaskDialog from './components/AddTaskDialog'
 import BoardColumn from './components/BoardColumn'
-import type { BoardState, Character, ColumnId } from './types'
+import type { BoardState, Character, ColumnId, Task } from './types'
 
 type CharacterLoadState =
   | { status: 'loading' }
@@ -21,9 +22,11 @@ const initialBoardState: BoardState = {
 }
 
 function App() {
-  const [board] = useState<BoardState>(initialBoardState)
+  const [board, setBoard] = useState<BoardState>(initialBoardState)
   const [characterLoadState, setCharacterLoadState] =
     useState<CharacterLoadState>({ status: 'loading' })
+  const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
+  const addTaskButtonRef = useRef<HTMLButtonElement>(null)
 
   const loadCharacters = useCallback(() => {
     setCharacterLoadState({ status: 'loading' })
@@ -63,9 +66,47 @@ function App() {
     }
   }, [])
 
+  const handleAddTask = useCallback(
+    ({ title, characterId }: Omit<Task, 'id'>) => {
+      const task: Task = {
+        id: crypto.randomUUID(),
+        title,
+        characterId,
+      }
+
+      setBoard((currentBoard) => ({
+        ...currentBoard,
+        todo: [...currentBoard.todo, task],
+      }))
+    },
+    [],
+  )
+
+  const handleCloseAddTaskDialog = useCallback(() => {
+    setIsAddTaskDialogOpen(false)
+    addTaskButtonRef.current?.focus()
+  }, [])
+
+  const characters =
+    characterLoadState.status === 'success' ? characterLoadState.characters : []
+  const charactersById = new Map(
+    characters.map((character) => [character.id, character]),
+  )
+
   return (
     <main>
-      <h1>Healthie Kanban</h1>
+      <div className="app-header">
+        <h1>Healthie Kanban</h1>
+        {characterLoadState.status === 'success' ? (
+          <button
+            ref={addTaskButtonRef}
+            type="button"
+            onClick={() => setIsAddTaskDialogOpen(true)}
+          >
+            Add Task
+          </button>
+        ) : null}
+      </div>
       {characterLoadState.status === 'loading' ? (
         <p className="status-message" role="status">
           Loading characters...
@@ -87,9 +128,17 @@ function App() {
               id={column.id}
               title={column.title}
               tasks={board[column.id]}
+              charactersById={charactersById}
             />
           ))}
         </section>
+      ) : null}
+      {isAddTaskDialogOpen ? (
+        <AddTaskDialog
+          characters={characters}
+          onAddTask={handleAddTask}
+          onClose={handleCloseAddTaskDialog}
+        />
       ) : null}
     </main>
   )

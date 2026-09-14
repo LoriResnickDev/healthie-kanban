@@ -1,12 +1,14 @@
-import type { ColumnId, Task } from '../types'
+import TaskCard from './TaskCard'
+import type { Character, ColumnId, Task } from '../types'
 
 type BoardColumnProps = {
   id: ColumnId
   title: string
   tasks: Task[]
+  charactersById: Map<string, Character>
 }
 
-function BoardColumn({ id, title, tasks }: BoardColumnProps) {
+function BoardColumn({ id, title, tasks, charactersById }: BoardColumnProps) {
   const headingId = `${id}-column-heading`
 
   return (
@@ -15,7 +17,15 @@ function BoardColumn({ id, title, tasks }: BoardColumnProps) {
       <div className="task-list" aria-label={`${title} tasks`}>
         {tasks.length === 0 ? (
           <p className="empty-column">No tasks yet.</p>
-        ) : null}
+        ) : (
+          tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              character={charactersById.get(task.characterId)}
+            />
+          ))
+        )}
       </div>
     </section>
   )
