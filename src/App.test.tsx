@@ -29,7 +29,10 @@ describe('App', () => {
   })
 
   it('shows a loading state while characters load', () => {
-    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => undefined)))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => undefined)),
+    )
 
     render(<App />)
 

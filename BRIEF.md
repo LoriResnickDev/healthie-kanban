@@ -77,24 +77,24 @@ represents task order.
 
 ```ts
 type Character = {
-  id: string;
-  name: string;
-  image: string;
-};
+  id: string
+  name: string
+  image: string
+}
 
 type Task = {
-  id: string;
-  title: string;
-  characterId: string;
-};
+  id: string
+  title: string
+  characterId: string
+}
 
-type ColumnId = "todo" | "doing" | "done";
+type ColumnId = 'todo' | 'doing' | 'done'
 
 type BoardState = {
-  todo: Task[];
-  doing: Task[];
-  done: Task[];
-};
+  todo: Task[]
+  doing: Task[]
+  done: Task[]
+}
 ```
 
 Store only `characterId` on a task rather than duplicating character data.
