@@ -8,6 +8,7 @@ const confettiPieces = Array.from({ length: 40 }, (_, index) => index)
 
 function DoneCelebration({ character }: DoneCelebrationProps) {
   return (
+    // Announce completion without moving focus away from the board interaction.
     <div className="done-celebration" role="status" aria-live="polite">
       <div className="confetti" aria-hidden="true">
         {confettiPieces.map((piece) => (

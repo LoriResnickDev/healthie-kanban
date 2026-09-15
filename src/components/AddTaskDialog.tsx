@@ -31,6 +31,8 @@ function AddTaskDialog({ characters, onAddTask, onClose }: AddTaskDialogProps) {
       return undefined
     }
 
+    // Rely on the native dialog for modal focus containment and Escape handling
+    // rather than implementing a custom focus trap.
     dialog.showModal()
     titleInputRef.current?.focus()
 
