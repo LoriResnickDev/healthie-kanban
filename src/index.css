@@ -64,9 +64,10 @@ h1 {
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(16rem, 1fr));
   gap: 1rem;
   align-items: start;
+  overflow-x: auto;
 }
 
 .board-column {
@@ -113,6 +114,7 @@ h1 {
   margin: 0 0 0.75rem;
   font-size: 1rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .task-character {
@@ -121,6 +123,7 @@ h1 {
   align-items: center;
   color: #4b5563;
   font-size: 0.875rem;
+  overflow-wrap: anywhere;
 }
 
 .task-avatar {
@@ -165,11 +168,13 @@ h1 {
 
 .add-task-dialog {
   width: min(100% - 2rem, 32rem);
+  max-height: calc(100vh - 2rem);
   padding: 0;
   border: 1px solid #d8dee4;
   border-radius: 8px;
   color: inherit;
   background: #ffffff;
+  overflow: auto;
 }
 
 .add-task-dialog::backdrop {
