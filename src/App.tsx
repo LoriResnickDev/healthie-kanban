@@ -3,13 +3,15 @@ import {
   KeyboardSensor,
   PointerSensor,
   type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchCharacters } from './api/characters'
-import { reorderTaskWithinColumn } from './board'
+import { findTaskColumn, finishTaskMove, moveTaskAcrossColumns } from './board'
 import AddTaskDialog from './components/AddTaskDialog'
 import BoardColumn from './components/BoardColumn'
 import type { BoardState, Character, ColumnId, Task } from './types'
@@ -37,6 +39,7 @@ function App() {
     useState<CharacterLoadState>({ status: 'loading' })
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
   const addTaskButtonRef = useRef<HTMLButtonElement>(null)
+  const dragStartColumnRef = useRef<ColumnId | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -103,14 +106,42 @@ function App() {
     addTaskButtonRef.current?.focus()
   }, [])
 
-  const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+  const handleDragStart = useCallback(
+    ({ active }: DragStartEvent) => {
+      dragStartColumnRef.current = findTaskColumn(board, String(active.id))
+    },
+    [board],
+  )
+
+  const handleDragOver = useCallback(({ active, over }: DragOverEvent) => {
     if (!over || active.id === over.id) {
       return
     }
 
     setBoard((currentBoard) =>
-      reorderTaskWithinColumn(currentBoard, String(active.id), String(over.id)),
+      moveTaskAcrossColumns(currentBoard, String(active.id), String(over.id)),
     )
+  }, [])
+
+  const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) {
+      dragStartColumnRef.current = null
+      return
+    }
+
+    setBoard((currentBoard) =>
+      finishTaskMove(
+        currentBoard,
+        String(active.id),
+        String(over.id),
+        dragStartColumnRef.current,
+      ),
+    )
+    dragStartColumnRef.current = null
+  }, [])
+
+  const handleDragCancel = useCallback(() => {
+    dragStartColumnRef.current = null
   }, [])
 
   const characters =
@@ -147,7 +178,13 @@ function App() {
         </div>
       ) : null}
       {characterLoadState.status === 'success' ? (
-        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
           <section className="board" aria-label="Kanban board">
             {columns.map((column) => (
               <BoardColumn

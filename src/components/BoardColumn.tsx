@@ -1,3 +1,4 @@
+import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import TaskCard from './TaskCard'
 import type { Character, ColumnId, Task } from '../types'
@@ -11,9 +12,16 @@ type BoardColumnProps = {
 
 function BoardColumn({ id, title, tasks, charactersById }: BoardColumnProps) {
   const headingId = `${id}-column-heading`
+  const { isOver, setNodeRef } = useDroppable({ id })
 
   return (
-    <section className="board-column" aria-labelledby={headingId}>
+    <section
+      ref={setNodeRef}
+      className={
+        isOver ? 'board-column board-column-drop-target' : 'board-column'
+      }
+      aria-labelledby={headingId}
+    >
       <h2 id={headingId}>{title}</h2>
       <div className="task-list" aria-label={`${title} tasks`}>
         {tasks.length === 0 ? (

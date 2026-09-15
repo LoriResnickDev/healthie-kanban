@@ -77,6 +77,11 @@ h1 {
   background: #ffffff;
 }
 
+.board-column-drop-target {
+  border-color: #2563eb;
+  background: #f0f6ff;
+}
+
 .board-column h2 {
   margin: 0 0 1rem;
   font-size: 1rem;

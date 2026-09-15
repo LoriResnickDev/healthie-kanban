@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { reorderTaskWithinColumn } from './board'
+import { finishTaskMove, moveTaskAcrossColumns, moveTaskOnBoard } from './board'
 import type { BoardState } from './types'
 
 const board: BoardState = {
@@ -11,18 +11,85 @@ const board: BoardState = {
   done: [],
 }
 
-describe('reorderTaskWithinColumn', () => {
-  it('reorders tasks in the same column', () => {
-    const nextBoard = reorderTaskWithinColumn(board, 'task-1', 'task-2')
+describe('moveTaskOnBoard', () => {
+  it("reorders a task to another task's position in the same column", () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'task-2')
 
     expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
     expect(nextBoard.doing).toBe(board.doing)
     expect(nextBoard.done).toBe(board.done)
   })
 
-  it('does not move tasks between columns', () => {
-    const nextBoard = reorderTaskWithinColumn(board, 'task-1', 'task-3')
+  it('moves a task to the end of the same column when dropped over that column', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'todo')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
+    expect(nextBoard.doing).toBe(board.doing)
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it("moves a task to another column at another task's position", () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'task-3')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-1', 'task-3'])
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it('appends a task to a different column when dropped over that column', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'done')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing).toBe(board.doing)
+    expect(nextBoard.done.map((task) => task.id)).toEqual(['task-1'])
+  })
+
+  it('does nothing when the active task is unknown', () => {
+    const nextBoard = moveTaskOnBoard(board, 'missing-task', 'done')
 
     expect(nextBoard).toBe(board)
+  })
+
+  it('does nothing when the destination is unknown', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'missing-task')
+
+    expect(nextBoard).toBe(board)
+  })
+})
+
+describe('moveTaskAcrossColumns', () => {
+  it('moves a task to a different column', () => {
+    const nextBoard = moveTaskAcrossColumns(board, 'task-1', 'done')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.done.map((task) => task.id)).toEqual(['task-1'])
+  })
+
+  it('does not reorder within the same column', () => {
+    const nextBoard = moveTaskAcrossColumns(board, 'task-1', 'task-2')
+
+    expect(nextBoard).toBe(board)
+  })
+})
+
+describe('finishTaskMove', () => {
+  it('preserves same-column reordering at drag end', () => {
+    const nextBoard = finishTaskMove(board, 'task-1', 'task-2', 'todo')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
+  })
+
+  it('does not move a cross-column task a second time when it is already before the target task', () => {
+    const dragOverBoard = moveTaskAcrossColumns(board, 'task-1', 'task-3')
+    const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'task-3', 'todo')
+
+    expect(nextBoard).toBe(dragOverBoard)
+  })
+
+  it('does not move a cross-column task a second time when it is already at the end of the destination column', () => {
+    const dragOverBoard = moveTaskAcrossColumns(board, 'task-1', 'done')
+    const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'done', 'todo')
+
+    expect(nextBoard).toBe(dragOverBoard)
   })
 })
