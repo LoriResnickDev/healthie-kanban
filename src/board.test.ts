@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { finishTaskMove, moveTaskAcrossColumns, moveTaskOnBoard } from './board'
+import {
+  finishTaskMove,
+  moveTaskAcrossColumns,
+  moveTaskOnBoard,
+  shouldCelebrateDoneMove,
+} from './board'
 import type { BoardState } from './types'
 
 const board: BoardState = {
@@ -91,5 +96,31 @@ describe('finishTaskMove', () => {
     const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'done', 'todo')
 
     expect(nextBoard).toBe(dragOverBoard)
+  })
+})
+
+describe('shouldCelebrateDoneMove', () => {
+  it('celebrates when a task starts in To Do and ends in Done', () => {
+    expect(shouldCelebrateDoneMove('todo', 'done')).toBe(true)
+  })
+
+  it('celebrates when a task starts in Doing and ends in Done', () => {
+    expect(shouldCelebrateDoneMove('doing', 'done')).toBe(true)
+  })
+
+  it('does not celebrate when reordering within Done', () => {
+    expect(shouldCelebrateDoneMove('done', 'done')).toBe(false)
+  })
+
+  it('does not celebrate when a task starts in Done, leaves, and returns to Done', () => {
+    expect(shouldCelebrateDoneMove('done', 'done')).toBe(false)
+  })
+
+  it('does not celebrate when a task is dropped outside Done', () => {
+    expect(shouldCelebrateDoneMove('todo', 'doing')).toBe(false)
+  })
+
+  it('does not celebrate when the original column is unknown', () => {
+    expect(shouldCelebrateDoneMove(null, 'done')).toBe(false)
   })
 })

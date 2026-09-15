@@ -140,3 +140,14 @@ export function finishTaskMove(
 
   return moveTaskOnBoard(board, activeTaskId, overId)
 }
+
+export function shouldCelebrateDoneMove(
+  startColumnId: ColumnId | null,
+  finalColumnId: ColumnId | null,
+): boolean {
+  return (
+    startColumnId !== null &&
+    startColumnId !== 'done' &&
+    finalColumnId === 'done'
+  )
+}

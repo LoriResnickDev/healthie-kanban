@@ -9,17 +9,28 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchCharacters } from './api/characters'
-import { findTaskColumn, finishTaskMove, moveTaskAcrossColumns } from './board'
+import {
+  findTaskColumn,
+  finishTaskMove,
+  moveTaskAcrossColumns,
+  shouldCelebrateDoneMove,
+} from './board'
 import AddTaskDialog from './components/AddTaskDialog'
 import BoardColumn from './components/BoardColumn'
+import DoneCelebration from './components/DoneCelebration'
 import type { BoardState, Character, ColumnId, Task } from './types'
 
 type CharacterLoadState =
   | { status: 'loading' }
   | { status: 'success'; characters: Character[] }
   | { status: 'error'; message: string }
+
+type CelebrationState = {
+  id: string
+  character: Character
+} | null
 
 const columns: Array<{ id: ColumnId; title: string }> = [
   { id: 'todo', title: 'To Do' },
@@ -33,11 +44,14 @@ const initialBoardState: BoardState = {
   done: [],
 }
 
+const emptyCharacters: Character[] = []
+
 function App() {
   const [board, setBoard] = useState<BoardState>(initialBoardState)
   const [characterLoadState, setCharacterLoadState] =
     useState<CharacterLoadState>({ status: 'loading' })
   const [isAddTaskDialogOpen, setIsAddTaskDialogOpen] = useState(false)
+  const [celebration, setCelebration] = useState<CelebrationState>(null)
   const addTaskButtonRef = useRef<HTMLButtonElement>(null)
   const dragStartColumnRef = useRef<ColumnId | null>(null)
   const sensors = useSensors(
@@ -85,6 +99,20 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!celebration) {
+      return undefined
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setCelebration(null)
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [celebration])
+
   const handleAddTask = useCallback(
     ({ title, characterId }: Omit<Task, 'id'>) => {
       const task: Task = {
@@ -106,6 +134,15 @@ function App() {
     addTaskButtonRef.current?.focus()
   }, [])
 
+  const characters =
+    characterLoadState.status === 'success'
+      ? characterLoadState.characters
+      : emptyCharacters
+  const charactersById = useMemo(
+    () => new Map(characters.map((character) => [character.id, character])),
+    [characters],
+  )
+
   const handleDragStart = useCallback(
     ({ active }: DragStartEvent) => {
       dragStartColumnRef.current = findTaskColumn(board, String(active.id))
@@ -123,32 +160,47 @@ function App() {
     )
   }, [])
 
-  const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) {
-      dragStartColumnRef.current = null
-      return
-    }
+  const handleDragEnd = useCallback(
+    ({ active, over }: DragEndEvent) => {
+      const activeTaskId = String(active.id)
+      const startColumnId = dragStartColumnRef.current
 
-    setBoard((currentBoard) =>
-      finishTaskMove(
-        currentBoard,
-        String(active.id),
-        String(over.id),
-        dragStartColumnRef.current,
-      ),
-    )
-    dragStartColumnRef.current = null
-  }, [])
+      if (!over) {
+        dragStartColumnRef.current = null
+        return
+      }
+
+      const nextBoard =
+        active.id === over.id
+          ? board
+          : finishTaskMove(board, activeTaskId, String(over.id), startColumnId)
+      const finalColumnId = findTaskColumn(nextBoard, activeTaskId)
+
+      if (nextBoard !== board) {
+        setBoard(nextBoard)
+      }
+
+      if (shouldCelebrateDoneMove(startColumnId, finalColumnId)) {
+        const completedTask = nextBoard.done.find(
+          (task) => task.id === activeTaskId,
+        )
+        const character = completedTask
+          ? charactersById.get(completedTask.characterId)
+          : undefined
+
+        if (character) {
+          setCelebration({ id: crypto.randomUUID(), character })
+        }
+      }
+
+      dragStartColumnRef.current = null
+    },
+    [board, charactersById],
+  )
 
   const handleDragCancel = useCallback(() => {
     dragStartColumnRef.current = null
   }, [])
-
-  const characters =
-    characterLoadState.status === 'success' ? characterLoadState.characters : []
-  const charactersById = new Map(
-    characters.map((character) => [character.id, character]),
-  )
 
   return (
     <main>
@@ -203,6 +255,12 @@ function App() {
           characters={characters}
           onAddTask={handleAddTask}
           onClose={handleCloseAddTaskDialog}
+        />
+      ) : null}
+      {celebration ? (
+        <DoneCelebration
+          key={celebration.id}
+          character={celebration.character}
         />
       ) : null}
     </main>
