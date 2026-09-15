@@ -142,6 +142,38 @@ describe('App', () => {
     expect(addTaskButton).toHaveFocus()
   })
 
+  it('returns focus to Add Task after the native dialog cancel flow', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(createCharactersResponse())),
+    )
+
+    render(<App />)
+
+    const addTaskButton = await screen.findByRole('button', {
+      name: 'Add Task',
+    })
+
+    fireEvent.click(addTaskButton)
+
+    const dialog = screen.getByRole('dialog', {
+      name: 'Add Task',
+    }) as HTMLDialogElement
+    expect(screen.getByLabelText('Task title')).toHaveFocus()
+
+    const cancelEvent = new Event('cancel', { cancelable: true })
+    const shouldClose = dialog.dispatchEvent(cancelEvent)
+
+    if (shouldClose) {
+      dialog.close()
+    }
+
+    expect(
+      screen.queryByRole('dialog', { name: 'Add Task' }),
+    ).not.toBeInTheDocument()
+    expect(addTaskButton).toHaveFocus()
+  })
+
   it('shows validation errors when required task fields are missing', async () => {
     vi.stubGlobal(
       'fetch',
