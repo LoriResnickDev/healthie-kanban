@@ -3,6 +3,8 @@ import type { BoardState, ColumnId } from './types'
 
 const columnIds: ColumnId[] = ['todo', 'doing', 'done']
 
+export type ColumnDropPlacement = 'start' | 'end'
+
 export function isColumnId(value: string): value is ColumnId {
   return columnIds.includes(value as ColumnId)
 }
@@ -22,6 +24,7 @@ export function moveTaskOnBoard(
   board: BoardState,
   activeTaskId: string,
   overId: string,
+  columnDropPlacement?: ColumnDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
 
@@ -46,7 +49,7 @@ export function moveTaskOnBoard(
 
   if (activeColumnId === overColumnId) {
     const overIndex = isColumnId(overId)
-      ? activeTasks.length - 1
+      ? getColumnDropIndex(activeTasks.length, columnDropPlacement, true)
       : activeTasks.findIndex((task) => task.id === overId)
 
     if (overIndex === -1) {
@@ -62,7 +65,7 @@ export function moveTaskOnBoard(
   const activeTask = activeTasks[activeIndex]
   const destinationTasks = board[overColumnId]
   const destinationIndex = isColumnId(overId)
-    ? destinationTasks.length
+    ? getColumnDropIndex(destinationTasks.length, columnDropPlacement)
     : destinationTasks.findIndex((task) => task.id === overId)
 
   if (destinationIndex === -1) {
@@ -84,6 +87,7 @@ export function moveTaskAcrossColumns(
   board: BoardState,
   activeTaskId: string,
   overId: string,
+  columnDropPlacement?: ColumnDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
   const overColumnId = isColumnId(overId)
@@ -94,7 +98,7 @@ export function moveTaskAcrossColumns(
     return board
   }
 
-  return moveTaskOnBoard(board, activeTaskId, overId)
+  return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
 }
 
 export function finishTaskMove(
@@ -102,6 +106,7 @@ export function finishTaskMove(
   activeTaskId: string,
   overId: string,
   dragStartColumnId: ColumnId | null,
+  columnDropPlacement?: ColumnDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
 
@@ -110,7 +115,7 @@ export function finishTaskMove(
   }
 
   if (activeColumnId === dragStartColumnId) {
-    return moveTaskOnBoard(board, activeTaskId, overId)
+    return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
   }
 
   if (isColumnId(overId)) {
@@ -119,15 +124,21 @@ export function finishTaskMove(
       (task) => task.id === activeTaskId,
     )
 
-    return activeIndex === activeTasks.length - 1
+    const destinationIndex = getColumnDropIndex(
+      activeTasks.length,
+      columnDropPlacement,
+      true,
+    )
+
+    return activeIndex === destinationIndex
       ? board
-      : moveTaskOnBoard(board, activeTaskId, overId)
+      : moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
   }
 
   const overColumnId = findTaskColumn(board, overId)
 
   if (activeColumnId !== overColumnId) {
-    return moveTaskOnBoard(board, activeTaskId, overId)
+    return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
   }
 
   const activeTasks = board[activeColumnId]
@@ -138,7 +149,7 @@ export function finishTaskMove(
     return board
   }
 
-  return moveTaskOnBoard(board, activeTaskId, overId)
+  return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
 }
 
 export function shouldCelebrateDoneMove(
@@ -150,4 +161,16 @@ export function shouldCelebrateDoneMove(
     startColumnId !== 'done' &&
     finalColumnId === 'done'
   )
+}
+
+function getColumnDropIndex(
+  taskCount: number,
+  columnDropPlacement?: ColumnDropPlacement,
+  isSameColumn = false,
+): number {
+  if (columnDropPlacement === 'start') {
+    return 0
+  }
+
+  return isSameColumn ? taskCount - 1 : taskCount
 }

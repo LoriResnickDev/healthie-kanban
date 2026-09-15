@@ -25,8 +25,16 @@ describe('moveTaskOnBoard', () => {
     expect(nextBoard.done).toBe(board.done)
   })
 
-  it('moves a task to the end of the same column when dropped over that column', () => {
-    const nextBoard = moveTaskOnBoard(board, 'task-1', 'todo')
+  it('moves a task to the beginning of the same column when dropped over that column with start placement', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-2', 'todo', 'start')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
+    expect(nextBoard.doing).toBe(board.doing)
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it('moves a task to the end of the same column when dropped over that column with end placement', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'todo', 'end')
 
     expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
     expect(nextBoard.doing).toBe(board.doing)
@@ -41,7 +49,23 @@ describe('moveTaskOnBoard', () => {
     expect(nextBoard.done).toBe(board.done)
   })
 
-  it('appends a task to a different column when dropped over that column', () => {
+  it('inserts a task at the beginning of a non-empty destination column with start placement', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'doing', 'start')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-1', 'task-3'])
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it('appends a task to a non-empty destination column with end placement', () => {
+    const nextBoard = moveTaskOnBoard(board, 'task-1', 'doing', 'end')
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-3', 'task-1'])
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it('appends a task to an empty destination column when dropped over that column without explicit placement', () => {
     const nextBoard = moveTaskOnBoard(board, 'task-1', 'done')
 
     expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
