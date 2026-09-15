@@ -20,6 +20,8 @@ export function findTaskColumn(
   )
 }
 
+// Board helpers handle task-movement semantics; App translates dnd-kit events
+// and geometry into those operations.
 export function moveTaskOnBoard(
   board: BoardState,
   activeTaskId: string,

@@ -12,6 +12,7 @@ type BoardColumnProps = {
 
 function BoardColumn({ id, title, tasks, charactersById }: BoardColumnProps) {
   const headingId = `${id}-column-heading`
+  // Columns are droppable separately from sortable tasks so users can drop into empty columns or column space outside a task card.
   const { isOver, setNodeRef } = useDroppable({ id })
 
   return (

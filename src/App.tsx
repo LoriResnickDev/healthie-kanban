@@ -64,12 +64,14 @@ function getCollisionRect(
   return collision?.data?.droppableContainer?.rect.current ?? null
 }
 
+// When a whole column wins collision detection, use dnd-kit's measured rects to decide only clear before-first/after-last drops.
 function getColumnDropPlacement(
   event: ColumnPlacementEvent,
   board: BoardState,
   columnId: ColumnId,
 ): ColumnDropPlacement | undefined {
   const activeTaskId = String(event.active.id)
+  // Compare against the other tasks in the column; the active task may already be present after drag-over movement.
   const destinationTasks = board[columnId].filter(
     (task) => task.id !== activeTaskId,
   )
@@ -98,6 +100,7 @@ function getColumnDropPlacement(
     return 'end'
   }
 
+  // Middle-zone or missing geometry is ambiguous, so leave placement unspecified and preserve the existing column-drop behavior.
   return undefined
 }
 
@@ -109,6 +112,7 @@ function App() {
   const [celebration, setCelebration] = useState<CelebrationState>(null)
   const addTaskButtonRef = useRef<HTMLButtonElement>(null)
   const dragStartColumnRef = useRef<ColumnId | null>(null)
+  // Pointer and keyboard sensors share the same board logic so drag behavior stays consistent across input methods.
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -205,6 +209,7 @@ function App() {
     [board],
   )
 
+  // Cross-column movement happens during drag-over so the dragged card remains visually in the column it has entered.
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event
 
@@ -227,6 +232,8 @@ function App() {
     })
   }, [])
 
+  // Drag end finalizes ordering without repeating cross-column moves already
+  // applied during drag-over, then checks whether the drop should celebrate Done.
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event
