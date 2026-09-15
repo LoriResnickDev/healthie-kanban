@@ -56,6 +56,7 @@ function App() {
   const [celebration, setCelebration] = useState<CelebrationState>(null)
   const addTaskButtonRef = useRef<HTMLButtonElement>(null)
   const dragStartColumnRef = useRef<ColumnId | null>(null)
+  const dragStartBoardRef = useRef<BoardState | null>(null)
   // Pointer and keyboard sensors share the same board logic so drag behavior stays consistent across input methods.
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -149,6 +150,7 @@ function App() {
   const handleDragStart = useCallback(
     ({ active }: DragStartEvent) => {
       dragStartColumnRef.current = findTaskColumn(board, String(active.id))
+      dragStartBoardRef.current = board
     },
     [board],
   )
@@ -186,6 +188,7 @@ function App() {
 
       if (!over) {
         dragStartColumnRef.current = null
+        dragStartBoardRef.current = null
         return
       }
 
@@ -223,12 +226,18 @@ function App() {
       }
 
       dragStartColumnRef.current = null
+      dragStartBoardRef.current = null
     },
     [board, charactersById],
   )
 
   const handleDragCancel = useCallback(() => {
+    if (dragStartBoardRef.current) {
+      setBoard(dragStartBoardRef.current)
+    }
+
     dragStartColumnRef.current = null
+    dragStartBoardRef.current = null
   }, [])
 
   return (
