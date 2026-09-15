@@ -260,6 +260,7 @@ function App() {
       ) : null}
       {characterLoadState.status === 'success' ? (
         <DndContext
+          autoScroll={false}
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
