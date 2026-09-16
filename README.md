@@ -99,6 +99,7 @@ documented in [DEMO_NOTES.md](./DEMO_NOTES.md).
 ## Technical Notes
 
 - The project uses React 19, TypeScript, Vite, Vitest, React Testing Library, ESLint, and Prettier.
+- `BRIEF.md` captures the implementation plan, design decisions, and scope used to guide development, including the AI-assisted workflow.
 - Character data comes from the Rick and Morty GraphQL API. Tasks are client-side state only.
 - Board state is modeled as explicit ordered arrays for `todo`, `doing`, and `done`; each array's order is the source of truth for rendering and reordering.
 - Tasks store a `characterId` instead of duplicating character data from the API.
