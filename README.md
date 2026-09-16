@@ -80,7 +80,7 @@ The main interactions can be tested without a mouse.
 2. Press `Space` or `Enter` to pick it up.
 3. Use the arrow keys to reorder it within a column or move it between columns, including empty columns.
 4. Press `Space` or `Enter` to drop it.
-5. Press `Escape` to cancel the drag.
+5. Press `Escape` to cancel the drag and verify the task returns to its original position.
 
 #### Add Task dialog
 
@@ -90,6 +90,11 @@ The main interactions can be tested without a mouse.
 4. Use `Tab` and `Shift+Tab` to move through the dialog controls.
 5. Press `Escape` to close the dialog.
 6. Verify that focus returns to the Add Task button.
+
+### Additional Manual Testing
+
+Additional browser-based manual verification and demonstration procedures are
+documented in [DEMO_NOTES.md](./DEMO_NOTES.md).
 
 ## Technical Notes
 
@@ -106,3 +111,9 @@ The main interactions can be tested without a mouse.
 ## Scope
 
 Tasks are not persisted across refreshes. Filtering, search, pagination beyond the first page of characters, and backend storage are intentionally out of scope for this take-home.
+
+## Known Limitations
+
+Drag and drop is keyboard operable, but the current implementation does not
+provide screen-reader announcements for drag-and-drop actions such as pickup,
+movement, and drop.
