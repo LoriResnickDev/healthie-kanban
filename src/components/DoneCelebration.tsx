@@ -17,11 +17,7 @@ function DoneCelebration({ character }: DoneCelebrationProps) {
       </div>
       <div className="done-celebration-content">
         <h2>DONE! 🎉</h2>
-        <img
-          className="done-celebration-image"
-          src={character.image}
-          alt={character.name}
-        />
+        <img className="done-celebration-image" src={character.image} alt="" />
         <p>{character.name} made it to Done!</p>
       </div>
     </div>
