@@ -145,6 +145,8 @@ function App() {
   )
 
   function handleDragStart({ active }: DragStartEvent) {
+    // Remember the starting column and board so drag end can finalize the move
+    // and drag cancel can restore changes made during drag-over.
     dragStartColumnRef.current = findTaskColumn(board, String(active.id))
     dragStartBoardRef.current = board
   }
@@ -233,6 +235,8 @@ function App() {
   }
 
   function handleDragCancel() {
+    // Drag-over may already have moved a task across columns, so restore
+    // the board snapshot captured when the drag began.
     if (dragStartBoardRef.current) {
       setBoard(dragStartBoardRef.current)
     }

@@ -23,6 +23,9 @@ export function findTaskColumn(
 
 // Board helpers handle task-movement semantics; App translates dnd-kit events
 // and geometry into those operations.
+
+// Core board operation for moving/reordering a task.
+// Handles both same-column reordering and cross-column insertion.
 export function moveTaskOnBoard(
   board: BoardState,
   activeTaskId: string,
@@ -92,6 +95,8 @@ export function moveTaskOnBoard(
   }
 }
 
+// Used during drag-over to move a task only when it crosses into another column.
+// Same-column ordering is left unchanged until drag end.
 export function moveTaskAcrossColumns(
   board: BoardState,
   activeTaskId: string,
@@ -117,6 +122,8 @@ export function moveTaskAcrossColumns(
   )
 }
 
+// Finalizes task position at drag end. Same-column reordering is applied here;
+// cross-column movement normally happens during drag-over, but is handled here if still needed.
 export function finishTaskMove(
   board: BoardState,
   activeTaskId: string,
@@ -199,6 +206,7 @@ export function finishTaskMove(
   )
 }
 
+// Celebrate only when a task finishes in Done after starting in another column.
 export function shouldCelebrateDoneMove(
   startColumnId: ColumnId | null,
   finalColumnId: ColumnId | null,
@@ -210,6 +218,7 @@ export function shouldCelebrateDoneMove(
   )
 }
 
+// Converts a column-level drop into the array index where the task should land.
 function getColumnDropIndex(
   taskCount: number,
   columnDropPlacement?: ColumnDropPlacement,
@@ -222,6 +231,8 @@ function getColumnDropIndex(
   return isSameColumn ? taskCount - 1 : taskCount
 }
 
+// Converts before/after task placement into an array index, accounting for
+// the active task's removal when reordering within the same column.
 function getTaskDropIndex(
   tasks: BoardState[ColumnId],
   activeTaskId: string,

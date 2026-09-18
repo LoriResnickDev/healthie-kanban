@@ -30,6 +30,7 @@ type CharactersResponse = {
   errors?: unknown[]
 }
 
+// Lightweight shape check; fields used by the app are validated below.
 function isCharactersResponse(value: unknown): value is CharactersResponse {
   return typeof value === 'object' && value !== null
 }
