@@ -65,7 +65,7 @@ function App() {
     }),
   )
 
-  const loadCharacters = useCallback(() => {
+  const loadCharacters = () => {
     setCharacterLoadState({ status: 'loading' })
 
     return fetchCharacters()
@@ -78,7 +78,7 @@ function App() {
           message: 'Characters could not be loaded.',
         })
       })
-  }, [])
+  }
 
   useEffect(() => {
     let ignoreResult = false
@@ -117,21 +117,18 @@ function App() {
     }
   }, [celebration])
 
-  const handleAddTask = useCallback(
-    ({ title, characterId }: Omit<Task, 'id'>) => {
-      const task: Task = {
-        id: crypto.randomUUID(),
-        title,
-        characterId,
-      }
+  const handleAddTask = ({ title, characterId }: Omit<Task, 'id'>) => {
+    const task: Task = {
+      id: crypto.randomUUID(),
+      title,
+      characterId,
+    }
 
-      setBoard((currentBoard) => ({
-        ...currentBoard,
-        todo: [...currentBoard.todo, task],
-      }))
-    },
-    [],
-  )
+    setBoard((currentBoard) => ({
+      ...currentBoard,
+      todo: [...currentBoard.todo, task],
+    }))
+  }
 
   const handleCloseAddTaskDialog = useCallback(() => {
     setIsAddTaskDialogOpen(false)
@@ -147,16 +144,13 @@ function App() {
     [characters],
   )
 
-  const handleDragStart = useCallback(
-    ({ active }: DragStartEvent) => {
-      dragStartColumnRef.current = findTaskColumn(board, String(active.id))
-      dragStartBoardRef.current = board
-    },
-    [board],
-  )
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    dragStartColumnRef.current = findTaskColumn(board, String(active.id))
+    dragStartBoardRef.current = board
+  }
 
   // Cross-column movement happens during drag-over so the dragged card remains visually in the column it has entered.
-  const handleDragOver = useCallback((event: DragOverEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event
 
     if (!over || active.id === over.id) {
@@ -176,69 +170,66 @@ function App() {
         columnDropPlacement,
       )
     })
-  }, [])
+  }
 
   // Drag end finalizes ordering without repeating cross-column moves already
   // applied during drag-over, then checks whether the drop should celebrate Done.
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event
-      const activeTaskId = String(active.id)
-      const startColumnId = dragStartColumnRef.current
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    const activeTaskId = String(active.id)
+    const startColumnId = dragStartColumnRef.current
 
-      if (!over) {
-        dragStartColumnRef.current = null
-        dragStartBoardRef.current = null
-        return
-      }
-
-      const overId = String(over.id)
-      const columnDropPlacement = isColumnId(overId)
-        ? getColumnDropPlacement(event, board, overId)
-        : undefined
-      const nextBoard =
-        active.id === over.id
-          ? board
-          : finishTaskMove(
-              board,
-              activeTaskId,
-              overId,
-              startColumnId,
-              columnDropPlacement,
-            )
-      const finalColumnId = findTaskColumn(nextBoard, activeTaskId)
-
-      if (nextBoard !== board) {
-        setBoard(nextBoard)
-      }
-
-      if (shouldCelebrateDoneMove(startColumnId, finalColumnId)) {
-        const completedTask = nextBoard.done.find(
-          (task) => task.id === activeTaskId,
-        )
-        const character = completedTask
-          ? charactersById.get(completedTask.characterId)
-          : undefined
-
-        if (character) {
-          setCelebration({ id: crypto.randomUUID(), character })
-        }
-      }
-
+    if (!over) {
       dragStartColumnRef.current = null
       dragStartBoardRef.current = null
-    },
-    [board, charactersById],
-  )
+      return
+    }
 
-  const handleDragCancel = useCallback(() => {
+    const overId = String(over.id)
+    const columnDropPlacement = isColumnId(overId)
+      ? getColumnDropPlacement(event, board, overId)
+      : undefined
+    const nextBoard =
+      active.id === over.id
+        ? board
+        : finishTaskMove(
+            board,
+            activeTaskId,
+            overId,
+            startColumnId,
+            columnDropPlacement,
+          )
+    const finalColumnId = findTaskColumn(nextBoard, activeTaskId)
+
+    if (nextBoard !== board) {
+      setBoard(nextBoard)
+    }
+
+    if (shouldCelebrateDoneMove(startColumnId, finalColumnId)) {
+      const completedTask = nextBoard.done.find(
+        (task) => task.id === activeTaskId,
+      )
+      const character = completedTask
+        ? charactersById.get(completedTask.characterId)
+        : undefined
+
+      if (character) {
+        setCelebration({ id: crypto.randomUUID(), character })
+      }
+    }
+
+    dragStartColumnRef.current = null
+    dragStartBoardRef.current = null
+  }
+
+  const handleDragCancel = () => {
     if (dragStartBoardRef.current) {
       setBoard(dragStartBoardRef.current)
     }
 
     dragStartColumnRef.current = null
     dragStartBoardRef.current = null
-  }, [])
+  }
 
   return (
     <main>
