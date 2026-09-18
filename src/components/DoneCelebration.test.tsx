@@ -20,9 +20,9 @@ describe('DoneCelebration', () => {
     expect(
       screen.getByRole('heading', { name: 'DONE! 🎉' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Rick Sanchez' })).toHaveAttribute(
-      'src',
-      'https://example.com/rick.png',
-    )
+
+    const image = document.querySelector('.done-celebration-image')
+    expect(image).toHaveAttribute('src', 'https://example.com/rick.png')
+    expect(image).toHaveAttribute('alt', '')
   })
 })
