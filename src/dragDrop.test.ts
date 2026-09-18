@@ -1,6 +1,6 @@
 import type { ClientRect } from '@dnd-kit/core'
 import { describe, expect, it } from 'vitest'
-import { getColumnDropPlacement } from './dragDrop'
+import { getColumnDropPlacement, getTaskDropPlacement } from './dragDrop'
 import type { BoardState } from './types'
 
 type ColumnPlacementEvent = Parameters<typeof getColumnDropPlacement>[0]
@@ -125,5 +125,43 @@ describe('getColumnDropPlacement', () => {
     })
 
     expect(getColumnDropPlacement(event, board, 'todo')).toBeUndefined()
+  })
+})
+
+describe('getTaskDropPlacement', () => {
+  it('returns before when the active center is above the target task center', () => {
+    const event = createEvent({
+      activeId: 'task-2',
+      activeRect: createRect(40),
+      collisionRects: {
+        'task-1': createRect(100),
+      },
+    })
+
+    expect(getTaskDropPlacement(event, 'task-1')).toBe('before')
+  })
+
+  it('returns after when the active center is below the target task center', () => {
+    const event = createEvent({
+      activeId: 'task-2',
+      activeRect: createRect(160),
+      collisionRects: {
+        'task-1': createRect(100),
+      },
+    })
+
+    expect(getTaskDropPlacement(event, 'task-1')).toBe('after')
+  })
+
+  it('returns undefined when required geometry is missing', () => {
+    const event = createEvent({
+      activeId: 'task-2',
+      activeRect: null,
+      collisionRects: {
+        'task-1': createRect(100),
+      },
+    })
+
+    expect(getTaskDropPlacement(event, 'task-1')).toBeUndefined()
   })
 })

@@ -49,6 +49,34 @@ describe('moveTaskOnBoard', () => {
     expect(nextBoard.done).toBe(board.done)
   })
 
+  it('moves a task before a task target in another column with before placement', () => {
+    const nextBoard = moveTaskOnBoard(
+      board,
+      'task-1',
+      'task-3',
+      undefined,
+      'before',
+    )
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-1', 'task-3'])
+    expect(nextBoard.done).toBe(board.done)
+  })
+
+  it('moves a task after a task target in another column with after placement', () => {
+    const nextBoard = moveTaskOnBoard(
+      board,
+      'task-1',
+      'task-3',
+      undefined,
+      'after',
+    )
+
+    expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2'])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-3', 'task-1'])
+    expect(nextBoard.done).toBe(board.done)
+  })
+
   it('inserts a task at the beginning of a non-empty destination column with start placement', () => {
     const nextBoard = moveTaskOnBoard(board, 'task-1', 'doing', 'start')
 
@@ -99,6 +127,26 @@ describe('moveTaskAcrossColumns', () => {
 
     expect(nextBoard).toBe(board)
   })
+
+  it('places a quickly moved task after the task it is below in the destination column', () => {
+    const quickDragBoard: BoardState = {
+      todo: [board.todo[1]],
+      doing: [board.todo[0]],
+      done: [],
+    }
+
+    const nextBoard = moveTaskAcrossColumns(
+      quickDragBoard,
+      'task-2',
+      'task-1',
+      undefined,
+      'after',
+    )
+
+    expect(nextBoard.todo).toEqual([])
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-1', 'task-2'])
+    expect(nextBoard.done).toBe(quickDragBoard.done)
+  })
 })
 
 describe('finishTaskMove', () => {
@@ -120,6 +168,73 @@ describe('finishTaskMove', () => {
     const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'done', 'todo')
 
     expect(nextBoard).toBe(dragOverBoard)
+  })
+
+  it('does not move a cross-column task a second time when it is already after the target task', () => {
+    const dragOverBoard: BoardState = {
+      todo: [],
+      doing: [board.todo[0], board.todo[1]],
+      done: [],
+    }
+
+    const nextBoard = finishTaskMove(
+      dragOverBoard,
+      'task-2',
+      'task-1',
+      'todo',
+      undefined,
+      'after',
+    )
+
+    expect(nextBoard).toBe(dragOverBoard)
+  })
+
+  it('supports same-column before and after placement without index shifts', () => {
+    const threeTaskBoard: BoardState = {
+      todo: [board.todo[0], board.todo[1], board.doing[0]],
+      doing: [],
+      done: [],
+    }
+
+    expect(
+      moveTaskOnBoard(
+        threeTaskBoard,
+        'task-1',
+        'task-2',
+        undefined,
+        'after',
+      ).todo.map((task) => task.id),
+    ).toEqual(['task-2', 'task-1', 'task-3'])
+
+    expect(
+      moveTaskOnBoard(
+        threeTaskBoard,
+        'task-3',
+        'task-2',
+        undefined,
+        'before',
+      ).todo.map((task) => task.id),
+    ).toEqual(['task-1', 'task-3', 'task-2'])
+
+    expect(
+      moveTaskOnBoard(
+        threeTaskBoard,
+        'task-2',
+        'task-3',
+        undefined,
+        'after',
+      ).todo.map((task) => task.id),
+    ).toEqual(['task-1', 'task-3', 'task-2'])
+
+    expect(
+      moveTaskOnBoard(
+        threeTaskBoard,
+        'task-1',
+        'task-2',
+        undefined,
+        'before',
+      ).todo.map((task) => task.id),
+    ).toEqual(['task-1', 'task-2', 'task-3'])
   })
 })
 

@@ -1,5 +1,5 @@
 import type { ClientRect, DragOverEvent } from '@dnd-kit/core'
-import type { ColumnDropPlacement } from './board'
+import type { ColumnDropPlacement, TaskDropPlacement } from './board'
 import type { BoardState, ColumnId } from './types'
 
 type ColumnPlacementEvent = Pick<DragOverEvent, 'active' | 'collisions'>
@@ -54,5 +54,30 @@ export function getColumnDropPlacement(
   }
 
   // Middle-zone or missing geometry is ambiguous, so leave placement unspecified and preserve the existing column-drop behavior.
+  return undefined
+}
+
+export function getTaskDropPlacement(
+  event: ColumnPlacementEvent,
+  overTaskId: string,
+): TaskDropPlacement | undefined {
+  const activeRect = event.active.rect.current.translated
+  const overTaskRect = getCollisionRect(event, overTaskId)
+
+  if (!activeRect || !overTaskRect) {
+    return undefined
+  }
+
+  const activeCenterY = getCenterY(activeRect)
+  const overTaskCenterY = getCenterY(overTaskRect)
+
+  if (activeCenterY < overTaskCenterY) {
+    return 'before'
+  }
+
+  if (activeCenterY > overTaskCenterY) {
+    return 'after'
+  }
+
   return undefined
 }

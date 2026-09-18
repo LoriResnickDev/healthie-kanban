@@ -21,7 +21,7 @@ import {
 import AddTaskDialog from './components/AddTaskDialog'
 import BoardColumn from './components/BoardColumn'
 import DoneCelebration from './components/DoneCelebration'
-import { getColumnDropPlacement } from './dragDrop'
+import { getColumnDropPlacement, getTaskDropPlacement } from './dragDrop'
 import type { BoardState, Character, ColumnId, Task } from './types'
 
 type CharacterLoadState =
@@ -162,13 +162,19 @@ function App() {
       const columnDropPlacement = isColumnId(overId)
         ? getColumnDropPlacement(event, currentBoard, overId)
         : undefined
+      const taskDropPlacement = isColumnId(overId)
+        ? undefined
+        : getTaskDropPlacement(event, overId)
 
-      return moveTaskAcrossColumns(
+      const nextBoard = moveTaskAcrossColumns(
         currentBoard,
         String(active.id),
         overId,
         columnDropPlacement,
+        taskDropPlacement,
       )
+
+      return nextBoard
     })
   }
 
@@ -189,6 +195,9 @@ function App() {
     const columnDropPlacement = isColumnId(overId)
       ? getColumnDropPlacement(event, board, overId)
       : undefined
+    const taskDropPlacement = isColumnId(overId)
+      ? undefined
+      : getTaskDropPlacement(event, overId)
     const nextBoard =
       active.id === over.id
         ? board
@@ -198,6 +207,7 @@ function App() {
             overId,
             startColumnId,
             columnDropPlacement,
+            taskDropPlacement,
           )
     const finalColumnId = findTaskColumn(nextBoard, activeTaskId)
 

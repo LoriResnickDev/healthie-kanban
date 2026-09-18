@@ -4,6 +4,7 @@ import type { BoardState, ColumnId } from './types'
 const columnIds: ColumnId[] = ['todo', 'doing', 'done']
 
 export type ColumnDropPlacement = 'start' | 'end'
+export type TaskDropPlacement = 'before' | 'after'
 
 export function isColumnId(value: string): value is ColumnId {
   return columnIds.includes(value as ColumnId)
@@ -27,6 +28,7 @@ export function moveTaskOnBoard(
   activeTaskId: string,
   overId: string,
   columnDropPlacement?: ColumnDropPlacement,
+  taskDropPlacement?: TaskDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
 
@@ -52,7 +54,7 @@ export function moveTaskOnBoard(
   if (activeColumnId === overColumnId) {
     const overIndex = isColumnId(overId)
       ? getColumnDropIndex(activeTasks.length, columnDropPlacement, true)
-      : activeTasks.findIndex((task) => task.id === overId)
+      : getTaskDropIndex(activeTasks, activeTaskId, overId, taskDropPlacement)
 
     if (overIndex === -1) {
       return board
@@ -68,7 +70,12 @@ export function moveTaskOnBoard(
   const destinationTasks = board[overColumnId]
   const destinationIndex = isColumnId(overId)
     ? getColumnDropIndex(destinationTasks.length, columnDropPlacement)
-    : destinationTasks.findIndex((task) => task.id === overId)
+    : getTaskDropIndex(
+        destinationTasks,
+        activeTaskId,
+        overId,
+        taskDropPlacement,
+      )
 
   if (destinationIndex === -1) {
     return board
@@ -90,6 +97,7 @@ export function moveTaskAcrossColumns(
   activeTaskId: string,
   overId: string,
   columnDropPlacement?: ColumnDropPlacement,
+  taskDropPlacement?: TaskDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
   const overColumnId = isColumnId(overId)
@@ -100,7 +108,13 @@ export function moveTaskAcrossColumns(
     return board
   }
 
-  return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
+  return moveTaskOnBoard(
+    board,
+    activeTaskId,
+    overId,
+    columnDropPlacement,
+    taskDropPlacement,
+  )
 }
 
 export function finishTaskMove(
@@ -109,6 +123,7 @@ export function finishTaskMove(
   overId: string,
   dragStartColumnId: ColumnId | null,
   columnDropPlacement?: ColumnDropPlacement,
+  taskDropPlacement?: TaskDropPlacement,
 ): BoardState {
   const activeColumnId = findTaskColumn(board, activeTaskId)
 
@@ -117,7 +132,13 @@ export function finishTaskMove(
   }
 
   if (activeColumnId === dragStartColumnId) {
-    return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
+    return moveTaskOnBoard(
+      board,
+      activeTaskId,
+      overId,
+      columnDropPlacement,
+      taskDropPlacement,
+    )
   }
 
   if (isColumnId(overId)) {
@@ -140,18 +161,42 @@ export function finishTaskMove(
   const overColumnId = findTaskColumn(board, overId)
 
   if (activeColumnId !== overColumnId) {
-    return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
+    return moveTaskOnBoard(
+      board,
+      activeTaskId,
+      overId,
+      columnDropPlacement,
+      taskDropPlacement,
+    )
   }
 
   const activeTasks = board[activeColumnId]
   const activeIndex = activeTasks.findIndex((task) => task.id === activeTaskId)
-  const overIndex = activeTasks.findIndex((task) => task.id === overId)
+  const destinationIndex = getTaskDropIndex(
+    activeTasks,
+    activeTaskId,
+    overId,
+    taskDropPlacement,
+  )
 
-  if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex - 1) {
+  if (activeIndex === -1 || destinationIndex === -1) {
     return board
   }
 
-  return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
+  if (
+    activeIndex === destinationIndex ||
+    (!taskDropPlacement && activeIndex === destinationIndex - 1)
+  ) {
+    return board
+  }
+
+  return moveTaskOnBoard(
+    board,
+    activeTaskId,
+    overId,
+    columnDropPlacement,
+    taskDropPlacement,
+  )
 }
 
 export function shouldCelebrateDoneMove(
@@ -175,4 +220,32 @@ function getColumnDropIndex(
   }
 
   return isSameColumn ? taskCount - 1 : taskCount
+}
+
+function getTaskDropIndex(
+  tasks: BoardState[ColumnId],
+  activeTaskId: string,
+  overTaskId: string,
+  taskDropPlacement?: TaskDropPlacement,
+): number {
+  const activeIndex = tasks.findIndex((task) => task.id === activeTaskId)
+  const overIndex = tasks.findIndex((task) => task.id === overTaskId)
+
+  if (overIndex === -1) {
+    return -1
+  }
+
+  if (taskDropPlacement === 'before') {
+    return activeIndex !== -1 && activeIndex < overIndex
+      ? overIndex - 1
+      : overIndex
+  }
+
+  if (taskDropPlacement === 'after') {
+    return activeIndex !== -1 && activeIndex < overIndex
+      ? overIndex
+      : overIndex + 1
+  }
+
+  return overIndex
 }
