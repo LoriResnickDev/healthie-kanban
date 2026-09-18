@@ -65,7 +65,7 @@ function App() {
     }),
   )
 
-  const loadCharacters = () => {
+  function loadCharacters() {
     setCharacterLoadState({ status: 'loading' })
 
     return fetchCharacters()
@@ -117,7 +117,7 @@ function App() {
     }
   }, [celebration])
 
-  const handleAddTask = ({ title, characterId }: Omit<Task, 'id'>) => {
+  function handleAddTask({ title, characterId }: Omit<Task, 'id'>) {
     const task: Task = {
       id: crypto.randomUUID(),
       title,
@@ -144,13 +144,13 @@ function App() {
     [characters],
   )
 
-  const handleDragStart = ({ active }: DragStartEvent) => {
+  function handleDragStart({ active }: DragStartEvent) {
     dragStartColumnRef.current = findTaskColumn(board, String(active.id))
     dragStartBoardRef.current = board
   }
 
   // Cross-column movement happens during drag-over so the dragged card remains visually in the column it has entered.
-  const handleDragOver = (event: DragOverEvent) => {
+  function handleDragOver(event: DragOverEvent) {
     const { active, over } = event
 
     if (!over || active.id === over.id) {
@@ -174,7 +174,7 @@ function App() {
 
   // Drag end finalizes ordering without repeating cross-column moves already
   // applied during drag-over, then checks whether the drop should celebrate Done.
-  const handleDragEnd = (event: DragEndEvent) => {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     const activeTaskId = String(active.id)
     const startColumnId = dragStartColumnRef.current
@@ -222,7 +222,7 @@ function App() {
     dragStartBoardRef.current = null
   }
 
-  const handleDragCancel = () => {
+  function handleDragCancel() {
     if (dragStartBoardRef.current) {
       setBoard(dragStartBoardRef.current)
     }
