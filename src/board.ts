@@ -139,16 +139,14 @@ export function finishTaskMove(
   }
 
   if (activeColumnId === dragStartColumnId) {
-    return moveTaskOnBoard(
-      board,
-      activeTaskId,
-      overId,
-      columnDropPlacement,
-      taskDropPlacement,
-    )
+    return moveTaskOnBoard(board, activeTaskId, overId, columnDropPlacement)
   }
 
   if (isColumnId(overId)) {
+    if (!columnDropPlacement && activeColumnId !== dragStartColumnId) {
+      return board
+    }
+
     const activeTasks = board[activeColumnId]
     const activeIndex = activeTasks.findIndex(
       (task) => task.id === activeTaskId,

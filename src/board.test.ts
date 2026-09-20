@@ -156,6 +156,25 @@ describe('finishTaskMove', () => {
     expect(nextBoard.todo.map((task) => task.id)).toEqual(['task-2', 'task-1'])
   })
 
+  it('uses sortable index behavior for same-column task targets even when task placement is present', () => {
+    const sameColumnBoard: BoardState = {
+      todo: [board.todo[0]],
+      doing: [board.todo[1], board.doing[0]],
+      done: [],
+    }
+
+    const nextBoard = finishTaskMove(
+      sameColumnBoard,
+      'task-3',
+      'task-2',
+      'doing',
+      undefined,
+      'after',
+    )
+
+    expect(nextBoard.doing.map((task) => task.id)).toEqual(['task-3', 'task-2'])
+  })
+
   it('does not move a cross-column task a second time when it is already before the target task', () => {
     const dragOverBoard = moveTaskAcrossColumns(board, 'task-1', 'task-3')
     const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'task-3', 'todo')
@@ -168,6 +187,18 @@ describe('finishTaskMove', () => {
     const nextBoard = finishTaskMove(dragOverBoard, 'task-1', 'done', 'todo')
 
     expect(nextBoard).toBe(dragOverBoard)
+  })
+
+  it('preserves an already-correct cross-column column-target order when drag end has no explicit placement', () => {
+    const dragOverBoard: BoardState = {
+      todo: [board.todo[1]],
+      doing: [],
+      done: [board.doing[0], board.todo[0]],
+    }
+
+    const nextBoard = finishTaskMove(dragOverBoard, 'task-3', 'done', 'doing')
+
+    expect(nextBoard.done.map((task) => task.id)).toEqual(['task-3', 'task-1'])
   })
 
   it('does not move a cross-column task a second time when it is already after the target task', () => {
