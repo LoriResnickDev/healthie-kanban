@@ -28,6 +28,15 @@ or an animation.
 The UI should be usable and thoughtfully styled, but does not need to be
 highly polished.
 
+## Current implementation status
+
+The core application described in this brief has been implemented. The
+Feature Implementation Order records the sequence used to build the app;
+it should not be interpreted as a list of remaining work.
+
+Use the current source code as the source of truth for implemented behavior.
+Use this brief for requirements, constraints, and design decisions.
+
 ## Clarifications
 
 - The Rick and Morty API provides character data only. Tasks are created
@@ -151,6 +160,31 @@ Keep the dnd-kit implementation as simple as possible. Do not introduce
 custom sensors, collision algorithms, modifiers, or abstractions unless
 they are needed to satisfy the requirements.
 
+### Drag-and-Drop Architecture Notes
+
+- `App.tsx` owns dnd-kit event orchestration, board state updates, drag-start/
+  cancel tracking, and Done celebration triggering.
+- `board.ts` contains board movement semantics and should remain independent
+  of React, dnd-kit events, DOM geometry, pointer/keyboard input, and collision
+  rectangles.
+- `dragDrop.ts` translates dnd-kit geometry into semantic placement values
+  such as column `start` / `end` and task `before` / `after`.
+- Cross-column movement happens live during `onDragOver` so the dragged task
+  appears in the destination column while dragging.
+- `onDragEnd` finalizes same-column reordering and reconciles the final drop
+  target without duplicating cross-column moves already applied during
+  `onDragOver`.
+- `onDragCancel` restores the board snapshot captured at drag start.
+- Same-column task reordering should preserve standard sortable index
+  behavior. Task `before` / `after` geometry is useful for cross-column task
+  insertion, but should not override same-column sortable index behavior.
+- When a cross-column task has already moved during `onDragOver` and
+  `onDragEnd` reports a column target with no explicit `start` / `end`
+  placement, preserve the existing board order rather than defaulting to end-of-
+  column.
+- dnd-kit `autoScroll` is disabled because it caused distracting page/board
+  scrolling while dragging near column edges in this app.
+
 ### Done celebration
 
 Trigger the celebration only when a task moves into Done.
@@ -194,6 +228,10 @@ Prioritize behavior such as:
 
 Avoid tests that merely duplicate implementation details.
 
+Some interactive behavior, especially drag-and-drop and native dialog focus
+behavior, should also be manually verified in the browser. See DEMO_NOTES.md
+for manual verification procedures.
+
 ### Engineering approach
 
 Prefer the simplest implementation that satisfies the current
@@ -221,6 +259,9 @@ a live pairing interview.
 8. Add final responsive styling and UI refinements.
 
 ## Future improvements (out of scope).
+
+These are possible follow-up or pairing features, not incomplete initial
+requirements.
 
 Possible follow-up features include:
 
